@@ -5,3 +5,4 @@ src/dist/
 src/myenv/
 src/__pycache__/
 src/main/
+main.spec
