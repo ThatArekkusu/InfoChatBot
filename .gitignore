@@ -1,0 +1,5 @@
+.env
+src/.venv/
+src/build/
+src/dist/
+src/myenv/

@@ -2,12 +2,14 @@
 from tkinter import *
 from tkinter import ttk
 from src.handlers.time_handler import getTimezone
+from src.handlers.weather_handler import getWeather
 
 class Chatbot:
     
     def __init__(self, root):
         # Give the window a title
         root.title("World Chatbot")
+        root.geometry("800x300") 
 
         # Define the size of the window
         mainframe = ttk.Frame(root, padding="3 3 12 12")
@@ -30,6 +32,7 @@ class Chatbot:
         # Allows the user to resize the window while having the components resize with it
         mainframe.columnconfigure(1, weight=0)  
         mainframe.columnconfigure(2, weight=1) 
+        mainframe.rowconfigure(3, weight=1)
         
         # Create the button to send the question
         ttk.Button(mainframe, text="Send", command=self.main).grid(column=2, row=2, sticky=W)
@@ -37,7 +40,8 @@ class Chatbot:
         # Create the answer GUI components
         ttk.Label(mainframe, text="Answer:").grid(column=1, row=3, sticky=W)
         answer_entry = ttk.Entry(mainframe, textvariable=self.answer, state="readonly")
-        answer_entry.grid(column=2, row=3, sticky=(W, E))
+        answer_entry.grid(column=2, row=3, sticky=(N, W, E, S))
+        
         
         # Creates proper spacing and padding for the GUI components
         for child in mainframe.winfo_children(): 
@@ -64,6 +68,7 @@ class Chatbot:
             # Define handlers for different keywords
             handlers = {
                 "time": self.handleTime,
+                "weather": self.handleWeather,
             }
 
             # Check if any of the keywords are present in the user input and call the corresponding handler
@@ -71,13 +76,12 @@ class Chatbot:
                 if word.lower() in handlers:
                     handlers[word.lower()](words)
                     break
-            # If no keyword is found, provide a default response
             else:
-                self.answer.set("I don't understand your question.")
+                self.updateAnswer("I don't understand your question.")
 
             self.question.set("")
         else:
-            self.answer.set("Please enter a question.")
+            self.updateAnswer("Please enter a question.")
 
     def handleTime(self, words):
         # Rejoins the words that were intially split
@@ -103,6 +107,17 @@ class Chatbot:
             # If there are no pending timezones, show the response directly
             self.answer.set(response)
 
+    def handleWeather(self, words):
+        # Rejoins the words that were initially split
+        userInput = " ".join(words)
+
+        # Call the getWeather function from the weather_handler module
+        response = getWeather(userInput)
+
+        # Set the answer variable to the response
+        self.answer.set(response)
+
+# Initialize the customtkinter application
 root = Tk()
 Chatbot(root)
 root.mainloop()
