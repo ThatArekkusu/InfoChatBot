@@ -3,3 +3,5 @@ src/.venv/
 src/build/
 src/dist/
 src/myenv/
+src/__pycache__/
+src/main/
