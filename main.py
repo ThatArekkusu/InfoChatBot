@@ -3,13 +3,14 @@ from tkinter import *
 from tkinter import ttk
 from src.handlers.time_handler import getTimezone
 from src.handlers.weather_handler import getWeather
+from src.handlers.news_handler import getNews
 
 class Chatbot:
     
     def __init__(self, root):
         # Give the window a title
         root.title("World Chatbot")
-        root.geometry("800x300") 
+        root.geometry("1600x600") 
 
         # Define the size of the window
         mainframe = ttk.Frame(root, padding="3 3 12 12")
@@ -39,9 +40,12 @@ class Chatbot:
 
         # Create the answer GUI components
         ttk.Label(mainframe, text="Answer:").grid(column=1, row=3, sticky=W)
-        answer_entry = ttk.Entry(mainframe, textvariable=self.answer, state="readonly")
-        answer_entry.grid(column=2, row=3, sticky=(N, W, E, S))
+        self.answer_text = Text(mainframe, wrap="word", height=10, state="disabled")
+        self.answer_text.grid(column=2, row=3, sticky=(N, W, E, S))
         
+        self.answer_text.config(state="normal") 
+        self.answer_text.insert("1.0", "Hello welcome to the World Chatbot! It has X features.\n1. Time.\n2. Weather.\n3. News.\nType the corrosponding number for example usage")
+        self.answer_text.config(state="disabled")
         
         # Creates proper spacing and padding for the GUI components
         for child in mainframe.winfo_children(): 
@@ -50,7 +54,7 @@ class Chatbot:
        # Sets the enter/return key to call the main function
         question_entry.focus()
         root.bind("<Return>", self.main)
-
+        
     def main(self, *args):
         # Get the user input from the question entry
         userInput = self.question.get().strip()
@@ -69,7 +73,12 @@ class Chatbot:
             handlers = {
                 "time": self.handleTime,
                 "weather": self.handleWeather,
+                "news": self.handleNews,
+                "1": self.handleUsage,
+                "2": self.handleUsage,
+                "3": self.handleUsage,
             }
+            
 
             # Check if any of the keywords are present in the user input and call the corresponding handler
             for word in words:
@@ -83,6 +92,13 @@ class Chatbot:
         else:
             self.updateAnswer("Please enter a question.")
 
+    def updateAnswer(self, response):
+        # Enable the Text widget, insert the response, and disable it again
+        self.answer_text.config(state="normal")
+        self.answer_text.delete("1.0", END) 
+        self.answer_text.insert("1.0", response) 
+        self.answer_text.config(state="disabled")  
+    
     def handleTime(self, words):
         # Rejoins the words that were intially split
         userInput = " ".join(words)
@@ -91,10 +107,10 @@ class Chatbot:
         if self.pending_timezones:
             if userInput in self.pending_timezones:
                 response, self.pending_timezones = getTimezone(userInput, self.pending_timezones)
-                self.answer.set(response)
+                self.updateAnswer(response)
             else:
                 # If the user input is not in the pending timezones, provide a message
-                self.answer.set(f"'{userInput}' is not a valid timezone. Please choose from: {', '.join(self.pending_timezones)}.")
+                self.updateAnswer(f"'{userInput}' is not a valid timezone. Please choose from: {', '.join(self.pending_timezones)}.")
             return
 
         # Call the getTimezone function from the time_handler module
@@ -102,10 +118,10 @@ class Chatbot:
 
         # If there are pending timezones, show the first three as examples
         if self.pending_timezones:
-            self.answer.set(f"{response} (e.g., {', '.join(self.pending_timezones[:3])}...)")
+            self.updateAnswer(f"{response} (e.g., {', '.join(self.pending_timezones[:3])}...)")
         else:
             # If there are no pending timezones, show the response directly
-            self.answer.set(response)
+            self.updateAnswer(response)
 
     def handleWeather(self, words):
         # Rejoins the words that were initially split
@@ -115,7 +131,28 @@ class Chatbot:
         response = getWeather(userInput)
 
         # Set the answer variable to the response
-        self.answer.set(response)
+        self.updateAnswer(response)
+
+    def handleNews(self, words):
+        userInput = " ".join(words)
+        
+        response = getNews(userInput)
+        
+        self.updateAnswer(response)
+        pass
+    
+    def handleUsage(self, words):
+        for word in words:
+            match word:
+                case "1":
+                    self.updateAnswer("To get the time use a prompt as follows 'what is the time in <location>'. if there is multiple timezones it will return you a list of them, simply enter in one of them and it will retrieve the timezone.")
+                case "2":
+                    self.updateAnswer("To get the current weather in a specific location, use a prompt as follows 'what is the weather in <location>'. Ensure you put the location after 'in'.")
+                case "3":
+                    self.updateAnswer("To get the latest news, use a prompt as follows 'what is the news'. Ask again for a different news headline.")
+                case _:
+                    # Optional: Handle unexpected input if needed
+                    pass
 
 # Initialize the customtkinter application
 root = Tk()
